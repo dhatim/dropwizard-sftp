@@ -32,7 +32,7 @@ bootstrap.addBundle(new SshdBundle<DsnConfiguration>() {
         // Init your SSH Server
     }
 });
-```xml
-## Support
+```
 
+## Support
 Please file bug reports and feature requests in [GitHub issues](https://github.com/dhatim/dropwizard-sftp/issues).
