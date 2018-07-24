@@ -52,6 +52,13 @@
         <system>GitHub</system>
         <url>https://github.com/dhatim/dropwizard-sftp/issues</url>
     </issueManagement>
+    
+    <distributionManagement>
+        <snapshotRepository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
+    </distributionManagement>
 
 
     <repositories>
