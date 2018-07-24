@@ -97,25 +97,21 @@ public abstract class VirtualFileSystem extends AbstractVirtualFileSystem {
     private VirtualDirectory root;
     private VirtualPath rootPath = create("/");
 
-    private final LoadingCache<VirtualPath, VirtualFile> cache = CacheBuilder.newBuilder()
-            .maximumSize(100)
-            .expireAfterWrite(10, TimeUnit.MINUTES)
-            .build(new CacheLoader<>() {
-                @Override
-                public VirtualFile load(VirtualPath key) throws Exception {
-                    if (key.equals(rootPath)) {
-                        return root;
-                    } else {
-                        VirtualFile parent = cache.get(key.getParent());
-                        if (parent instanceof VirtualDirectory) {
-                            return ((VirtualDirectory) parent).find(key.getFileName().toString()).orElseThrow(() -> new NoSuchFileException(key.toString()));
-                        } else {
-                            throw new IllegalStateException();
-                        }
-                    }
+    private final LoadingCache<VirtualPath, VirtualFile> cache = CacheBuilder.newBuilder().maximumSize(100).expireAfterWrite(10, TimeUnit.MINUTES).build(new CacheLoader<VirtualPath, VirtualFile>() {
+        @Override
+        public VirtualFile load(VirtualPath key) throws Exception {
+            if (key.equals(rootPath)) {
+                return root;
+            } else {
+                VirtualFile parent = cache.get(key.getParent());
+                if (parent instanceof VirtualDirectory) {
+                    return ((VirtualDirectory) parent).find(key.getFileName().toString()).orElseThrow(() -> new NoSuchFileException(key.toString()));
+                } else {
+                    throw new IllegalStateException();
                 }
-            });
-
+            }
+        }
+    });
 
     public VirtualFileSystem(AbstractVirtualFileSystemProvider fileSystemProvider, URI uri) {
         super(fileSystemProvider, uri);
@@ -174,7 +170,6 @@ public abstract class VirtualFileSystem extends AbstractVirtualFileSystem {
             return file.open(options);
         }
     }
-
 
     @Override
     protected PosixFileAttributeView getFileAttributeView(VirtualPath path, LinkOption... options) {
