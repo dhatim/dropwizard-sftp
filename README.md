@@ -15,7 +15,7 @@ This project is available in the [Central Repository](http://search.maven.org/#s
 <dependency>
   <groupId>org.dhatim</groupId>
   <artifactId>dropwizard-sftp</artifactId>
-  <version>1.1.2</version>
+  <version>1.1.3</version>
 </dependency>
 ```
 
