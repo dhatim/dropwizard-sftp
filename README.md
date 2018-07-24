@@ -19,16 +19,23 @@ This project is available in the [Central Repository](http://search.maven.org/#s
 </dependency>
 ```
 
+### Define SSHD configuration
+```yaml
+sshd:
+  port: 2222
+  bindHost: localhost
+```  
+
 ### Add the bundle to your Dropwizard application
 ```java
-bootstrap.addBundle(new SshdBundle<DsnConfiguration>() {
+bootstrap.addBundle(new SshdBundle<YourConfiguration>() {
     @Override
-    public SshdConfiguration getSshdConfiguration(DsnConfiguration configuration) {
+    public SshdConfiguration getSshdConfiguration(YourConfiguration configuration) {
         return configuration.getSshd();
     }
 
     @Override
-    public void configure(DsnConfiguration configuration, Environment environment, SshServer server) {
+    public void configure(YourConfiguration configuration, Environment environment, SshServer server) {
         // Init your SSH Server
     }
 });
