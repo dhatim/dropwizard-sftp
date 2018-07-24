@@ -7,10 +7,10 @@
     </prerequisites>
 
     <groupId>org.dhatim</groupId>
-    <artifactId>sftp-server</artifactId>
-    <version>0.0.0-SNAPSHOT</version>
-    <name>SFTP</name>
-    <description>TSFTP Server (SSH File Transfer Protocol) based on Apache MINA SSHD for Dropwizard</description>
+    <artifactId>dropwizard-sftp</artifactId>
+    <version>0-SNAPSHOT</version>
+    <name>Dropwizard SFTP Server</name>
+    <description>SFTP Server (SSH File Transfer Protocol) based on Apache MINA SSHD for Dropwizard</description>
     <url>https://github.com/dhatim/dropwizard-sftp</url>
 
     <developers>
