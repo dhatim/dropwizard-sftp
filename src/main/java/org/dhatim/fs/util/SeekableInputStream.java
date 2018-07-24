@@ -26,14 +26,6 @@ public class SeekableInputStream extends InputStream {
     }
 
     @Override
-    public byte[] readAllBytes() throws IOException {
-        ensureOpen();
-        byte[] bytes = in.readAllBytes();
-        pos += bytes.length;
-        return bytes;
-    }
-
-    @Override
     public int read(byte[] b) throws IOException {
         ensureOpen();
         int c = in.read(b);
@@ -50,14 +42,6 @@ public class SeekableInputStream extends InputStream {
         if (c >= 0) {
             pos += c;
         }
-        return c;
-    }
-
-    @Override
-    public int readNBytes(byte[] b, int off, int len) throws IOException {
-        ensureOpen();
-        int c = in.readNBytes(b, off, len);
-        pos += c;
         return c;
     }
 

@@ -33,7 +33,7 @@ public class BasicDirectoryStream<T, R> implements DirectoryStream<R> {
             str = str.filter(this::filterEntry);
         }
         itr = str.iterator();
-        return new Iterator<>() {
+        return new Iterator() {
             @Override
             public boolean hasNext() {
                 if (closed) {
