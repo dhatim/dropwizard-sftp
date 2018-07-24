@@ -19,12 +19,20 @@ This project is available in the [Central Repository](http://search.maven.org/#s
 </dependency>
 ```
 
-### Optional: edit your configuration YAML
-
-
 ### Add the bundle to your Dropwizard application
+```java
+bootstrap.addBundle(new SshdBundle<DsnConfiguration>() {
+    @Override
+    public SshdConfiguration getSshdConfiguration(DsnConfiguration configuration) {
+        return configuration.getSshd();
+    }
 
-
+    @Override
+    public void configure(DsnConfiguration configuration, Environment environment, SshServer server) {
+        // Init your SSH Server
+    }
+});
+```xml
 ## Support
 
 Please file bug reports and feature requests in [GitHub issues](https://github.com/dhatim/dropwizard-sftp/issues).
