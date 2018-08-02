@@ -19,7 +19,7 @@ public abstract class SshdBundle <T extends SshdConfiguration> implements Config
     @Override
     public void run(T configuration, Environment environment) throws Exception {
         if (!configuration.isEnable()) {
-            LOG.info("SSH disable");
+            LOG.info("SSHD server disable");
             return;
         }
         
