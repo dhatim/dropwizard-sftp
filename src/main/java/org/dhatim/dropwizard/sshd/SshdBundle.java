@@ -1,5 +1,6 @@
 package org.dhatim.dropwizard.sshd;
 
+import io.dropwizard.Configuration;
 import io.dropwizard.ConfiguredBundle;
 import io.dropwizard.lifecycle.Managed;
 import io.dropwizard.setup.Bootstrap;
@@ -8,7 +9,7 @@ import org.apache.sshd.server.SshServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public abstract class SshdBundle <T extends SshdConfiguration> implements ConfiguredBundle<T> {
+public abstract class SshdBundle <T extends Configuration> implements ConfiguredBundle<T> {
 
     private static final Logger LOG = LoggerFactory.getLogger(SshdBundle.class);
 
@@ -18,12 +19,12 @@ public abstract class SshdBundle <T extends SshdConfiguration> implements Config
 
     @Override
     public void run(T configuration, Environment environment) throws Exception {
-        if (!configuration.isEnable()) {
-            LOG.info("SSHD server disable");
+        SshdConfiguration sshConf = getSshdConfiguration(configuration);
+        if (!sshConf.isEnable()) {
+            LOG.info("SSHD server disabled");
             return;
         }
         
-        SshdConfiguration sshConf = getSshdConfiguration(configuration);
         SshServer server = SshServer.setUpDefaultServer();
         server.setPort(sshConf.getPort());
         server.setHost(sshConf.getBindHost());
