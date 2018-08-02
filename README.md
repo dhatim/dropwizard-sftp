@@ -23,6 +23,7 @@ This project is available in the [Central Repository](http://search.maven.org/#s
 ### Define SSHD configuration
 ```yaml
 sshd:
+  enable: true
   port: 2222
   bindHost: localhost
 ```  
