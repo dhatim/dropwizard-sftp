@@ -4,6 +4,8 @@ import io.dropwizard.validation.PortRange;
 
 public class SshdConfiguration {
     
+    private boolean enable;
+    
     @PortRange
     private int port = 2222;
     
@@ -23,6 +25,14 @@ public class SshdConfiguration {
     
     public void setBindHost(String host) {
         this.bindHost = host;
+    }
+
+    public boolean isEnable() {
+        return enable;
+    }
+
+    public void setEnable(boolean enable) {
+        this.enable = enable;
     }
 
 }
