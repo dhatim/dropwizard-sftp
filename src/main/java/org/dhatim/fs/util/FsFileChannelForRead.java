@@ -1,115 +1,126 @@
-package org.dhatim.fs.writeonly;
+package org.dhatim.fs.util;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
+import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
 
-public class WriteOnlyFileChannel extends FileChannel {
-    
-    private final WritableByteChannel outputChannel;
-    private long position;
+public class FsFileChannelForRead extends FileChannel {
 
-    public WriteOnlyFileChannel(WritableByteChannel outputChannel) {
-        this.outputChannel = outputChannel;
+    private static final Logger LOG = LoggerFactory.getLogger(FsFileChannelForRead.class);
+    private final FsByteChannel channel;
+
+    public FsFileChannelForRead() {
+        this(1024 * 1024);
     }
-    
+
+    public FsFileChannelForRead(int capacity) {
+        channel = new FsByteChannel(capacity);
+    }
+
+    public void transferTo(String threadName, ThrowingConsumer<OutputStream> writer) {
+        new Thread(() -> {
+            try {
+                writer.accept(Channels.newOutputStream(channel));
+                channel.writeComplete();
+            } catch (IOException e) {
+                LOG.error("cannot transfer to channel", e);
+                channel.close();
+            }
+        }, threadName).start();
+    }
+
     @Override
     public int read(ByteBuffer dst) throws IOException {
-        throw cannot("read");
+        return channel.read(dst);
     }
 
     @Override
     public long read(ByteBuffer[] dsts, int offset, int length) throws IOException {
-        throw cannot("read buffers");
+        throw new UnsupportedOperationException("read buffers");
     }
 
     @Override
     public int write(ByteBuffer src) throws IOException {
-        int written = outputChannel.write(src);
-        position += written;
-        return written;
+        throw new UnsupportedOperationException("write");
     }
 
     @Override
     public long write(ByteBuffer[] srcs, int offset, int length) throws IOException {
-        long written = 0;
-        for (int i=offset; i<offset+length; i++) {
-            written += write(srcs[i]);
-        }
-        return written;
+        throw new UnsupportedOperationException("write buffers");
     }
 
     @Override
     public long position() throws IOException {
-        return position;
+        return channel.getReadPos();
     }
 
     @Override
     public FileChannel position(long newPosition) throws IOException {
-        throw cannot("set position");
+        // no-op
+        return this;
     }
 
     @Override
     public long size() throws IOException {
-        throw cannot("get size");
+        return channel.getReadPos();
     }
 
     @Override
     public FileChannel truncate(long size) throws IOException {
-        throw cannot("truncate");
+        throw new UnsupportedOperationException("truncate");
     }
 
     @Override
     public void force(boolean metaData) throws IOException {
-        throw cannot("force");
+        throw new UnsupportedOperationException("force");
     }
 
     @Override
     public long transferTo(long position, long count, WritableByteChannel target) throws IOException {
-        throw cannot("transferTo");
+        throw new UnsupportedOperationException("transferTo");
     }
 
     @Override
     public long transferFrom(ReadableByteChannel src, long position, long count) throws IOException {
-        throw cannot("transferFrom");
+        throw new UnsupportedOperationException("transferFrom");
     }
 
     @Override
     public int read(ByteBuffer dst, long position) throws IOException {
-        throw cannot("read");
+        throw new UnsupportedOperationException("read at position");
     }
 
     @Override
     public int write(ByteBuffer src, long position) throws IOException {
-        throw cannot("write at position");
+        throw new UnsupportedOperationException("write at position");
     }
 
     @Override
     public MappedByteBuffer map(MapMode mode, long position, long size) throws IOException {
-        throw cannot("map");
+        throw new UnsupportedOperationException("map");
     }
 
     @Override
     public FileLock lock(long position, long size, boolean shared) throws IOException {
-        throw cannot("lock");
+        throw new UnsupportedOperationException("lock");
     }
 
     @Override
     public FileLock tryLock(long position, long size, boolean shared) throws IOException {
-        throw cannot("tryLock");
+        throw new UnsupportedOperationException("tryLock");
     }
 
     @Override
     protected void implCloseChannel() throws IOException {
-        outputChannel.close();
+        channel.close();
     }
-    
-    private static IOException cannot(String op) {
-        return new IOException("Cannot " + op);
-    }
-    
 }

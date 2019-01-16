@@ -8,6 +8,7 @@ import java.nio.file.attribute.UserPrincipalLookupService;
 public abstract class VirtualUserPrincipalLookupService extends UserPrincipalLookupService {
 
     public abstract UserPrincipal lookupUserPrincipal(VirtualFile file) throws IOException;
+
     public abstract GroupPrincipal lookupGroupPrincipal(VirtualFile file) throws IOException;
 
 }

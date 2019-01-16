@@ -21,6 +21,5 @@ public class VirtualPath extends BasePath<VirtualPath, AbstractVirtualFileSystem
         provider.checkAccess(absolute);
         return absolute;
     }
-    
-    
+
 }
