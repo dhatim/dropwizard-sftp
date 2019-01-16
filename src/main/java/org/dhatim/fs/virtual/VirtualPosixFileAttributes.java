@@ -13,11 +13,8 @@ public final class VirtualPosixFileAttributes implements PosixFileAttributes {
     private static final FileTime NO_TIME = FileTime.fromMillis(0);
 
     private final VirtualFile file;
-
     private final UserPrincipal owner;
     private final GroupPrincipal group;
-    private FileTime lastModified;
-    private Set<PosixFilePermission> permissions;
 
     VirtualPosixFileAttributes(VirtualFile file, UserPrincipal owner, GroupPrincipal group) {
         this.file = file;
@@ -37,28 +34,22 @@ public final class VirtualPosixFileAttributes implements PosixFileAttributes {
 
     @Override
     public Set<PosixFilePermission> permissions() {
-        if (permissions == null) {
-            permissions = file.getPermissions();
-        }
-        return Collections.unmodifiableSet(permissions);
+        return Collections.unmodifiableSet(file.getPermissions());
     }
 
     @Override
     public FileTime lastModifiedTime() {
-        if (lastModified == null) {
-            lastModified = file.getLastModifiedTime().orElse(NO_TIME);
-        }
-        return lastModified;
+        return file.getLastModifiedTime().orElse(NO_TIME);
     }
 
     @Override
     public FileTime lastAccessTime() {
-        return NO_TIME;
+        return file.getLastAccessTime().orElse(NO_TIME);
     }
 
     @Override
     public FileTime creationTime() {
-        return NO_TIME;
+        return file.getCreationTime().orElse(NO_TIME);
     }
 
     @Override

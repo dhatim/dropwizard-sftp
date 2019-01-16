@@ -1,13 +1,13 @@
 package org.dhatim.fs.virtual;
 
-import static java.nio.file.StandardOpenOption.CREATE;
-import static java.nio.file.StandardOpenOption.CREATE_NEW;
-import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
-import static java.nio.file.StandardOpenOption.WRITE;
-
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import org.dhatim.fs.base.AbstractVirtualFileSystem;
+import org.dhatim.fs.base.AbstractVirtualFileSystemProvider;
+import org.dhatim.fs.base.VirtualPath;
+import org.dhatim.fs.util.BasicDirectoryStream;
+
 import java.io.IOException;
 import java.net.URI;
 import java.nio.channels.FileChannel;
@@ -31,20 +31,19 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-import org.dhatim.fs.base.AbstractVirtualFileSystem;
-import org.dhatim.fs.base.AbstractVirtualFileSystemProvider;
-import org.dhatim.fs.base.VirtualPath;
-import org.dhatim.fs.util.BasicDirectoryStream;
-import org.dhatim.fs.util.UnsupportedIOException;
+
+import static java.nio.file.StandardOpenOption.CREATE;
+import static java.nio.file.StandardOpenOption.CREATE_NEW;
+import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
+import static java.nio.file.StandardOpenOption.WRITE;
 
 public abstract class VirtualFileSystem extends AbstractVirtualFileSystem {
 
-    private final class AttributeView implements PosixFileAttributeView {
+    public class AttributeView implements PosixFileAttributeView {
 
         private final VirtualPath path;
-        private VirtualFile file;
 
-        private AttributeView(VirtualPath path) {
+        public AttributeView(VirtualPath path) {
             this.path = path;
         }
 
@@ -54,42 +53,35 @@ public abstract class VirtualFileSystem extends AbstractVirtualFileSystem {
         }
 
         @Override
+        public PosixFileAttributes readAttributes() throws IOException {
+            VirtualUserPrincipalLookupService lookupService = getUserPrincipalLookupService();
+            VirtualFile file = resolve(path);
+            return new VirtualPosixFileAttributes(file, lookupService.lookupUserPrincipal(file), lookupService.lookupGroupPrincipal(file));
+        }
+
+        @Override
         public UserPrincipal getOwner() throws IOException {
-            return getUserPrincipalLookupService().lookupUserPrincipal(getFile());
+            return getUserPrincipalLookupService().lookupUserPrincipal(resolve(path));
         }
 
         @Override
         public void setOwner(UserPrincipal owner) throws IOException {
-            throw new UnsupportedIOException("setOwner");
-        }
-
-        @Override
-        public PosixFileAttributes readAttributes() throws IOException {
-            VirtualFile f = getFile();
-            VirtualUserPrincipalLookupService lookupService = getUserPrincipalLookupService();
-            return new VirtualPosixFileAttributes(f, lookupService.lookupUserPrincipal(f), lookupService.lookupGroupPrincipal(f));
+            resolve(path).setOwner(owner);
         }
 
         @Override
         public void setTimes(FileTime lastModifiedTime, FileTime lastAccessTime, FileTime createTime) throws IOException {
-            throw new UnsupportedIOException("setTimes");
+            resolve(path).setTimes(lastModifiedTime, lastAccessTime, createTime);
         }
 
         @Override
         public void setPermissions(Set<PosixFilePermission> perms) throws IOException {
-            throw new UnsupportedIOException("setPermissions");
+            resolve(path).setPermissions(perms);
         }
 
         @Override
         public void setGroup(GroupPrincipal group) throws IOException {
-            throw new UnsupportedIOException("setGroup");
-        }
-
-        private VirtualFile getFile() throws IOException {
-            if (file == null) {
-                file = resolve(path);
-            }
-            return file;
+            resolve(path).setGroup(group);
         }
 
     }
@@ -137,25 +129,25 @@ public abstract class VirtualFileSystem extends AbstractVirtualFileSystem {
     @Override
     protected void createDirectory(VirtualPath vDir, FileAttribute<?>... attrs) throws IOException {
         log.debug("treefs.createDirectory {}", vDir);
-        throw new IOException("Cannot create directory");
+        throw new UnsupportedOperationException("createDirectory");
     }
 
     @Override
     protected void delete(VirtualPath vPath) throws IOException {
         log.debug("treefs.delete {}", vPath);
-        throw new IOException("Cannot delete");
+        throw new UnsupportedOperationException("delete");
     }
 
     @Override
     protected void copy(VirtualPath src, VirtualPath dst, CopyOption... options) throws IOException {
         log.debug("treefs.copy {} {}", src, dst);
-        throw new IOException("Cannot copy");
+        throw new UnsupportedOperationException("copy");
     }
 
     @Override
     protected void move(VirtualPath src, VirtualPath dst, CopyOption... options) throws IOException {
         log.debug("treefs.move {} {}", src, dst);
-        throw new IOException("Cannot move");
+        throw new UnsupportedOperationException("move");
     }
 
     @Override
@@ -192,7 +184,7 @@ public abstract class VirtualFileSystem extends AbstractVirtualFileSystem {
         return create("/", list);
     }
 
-    private VirtualFile resolve(VirtualPath path) throws IOException {
+    protected VirtualFile resolve(VirtualPath path) throws IOException {
         try {
             return cache.get(path.toAbsolutePath());
         } catch (ExecutionException e) {
