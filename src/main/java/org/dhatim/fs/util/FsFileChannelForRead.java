@@ -30,9 +30,9 @@ public class FsFileChannelForRead extends FileChannel {
         new Thread(() -> {
             try {
                 writer.accept(Channels.newOutputStream(channel));
-                channel.writeComplete();
             } catch (IOException e) {
                 LOG.error("cannot transfer to channel", e);
+            } finally {
                 channel.close();
             }
         }, threadName).start();

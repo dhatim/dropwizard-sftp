@@ -21,20 +21,10 @@ public class FsByteChannel implements WritableByteChannel, ReadableByteChannel {
     private final Condition canWrite = lock.newCondition();
     private final Condition canRead = lock.newCondition();
     private long writePos;
-    private boolean writeComplete;
     private long readPos;
 
     public FsByteChannel(int capacity) {
         transferBuffer = new byte[capacity];
-    }
-
-    public void writeComplete() {
-        lock.lock();
-        try {
-            writeComplete = true;
-        } finally {
-            lock.unlock();
-        }
     }
 
     @Override
@@ -142,12 +132,11 @@ public class FsByteChannel implements WritableByteChannel, ReadableByteChannel {
         // wait until we can read from transfer buffer
         int capacity;
         while ((capacity = readCapacity()) == 0 && !closed) {
-            if (writeComplete) {
-                return -1;
-            }
             canRead.await(1, TimeUnit.SECONDS);
         }
-        if (closed) {
+
+        // nothing to read and channel closed: EOF
+        if (closed && capacity == 0) {
             return -1;
         }
 
