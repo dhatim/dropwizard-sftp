@@ -28,8 +28,8 @@ public class FsFileChannelForRead extends FileChannel {
 
     public void transferTo(String threadName, ThrowingConsumer<OutputStream> writer) {
         new Thread(() -> {
-            try {
-                writer.accept(Channels.newOutputStream(channel));
+            try (OutputStream os = Channels.newOutputStream(channel)) {
+                writer.accept(os);
             } catch (IOException e) {
                 LOG.error("cannot transfer to channel", e);
             } finally {
