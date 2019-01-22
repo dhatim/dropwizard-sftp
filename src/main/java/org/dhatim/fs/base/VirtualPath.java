@@ -15,7 +15,7 @@ public class VirtualPath extends BasePath<VirtualPath, AbstractVirtualFileSystem
 
     @Override
     public VirtualPath toRealPath(LinkOption... options) throws IOException {
-        VirtualPath absolute = toAbsolutePath();
+        VirtualPath absolute = toAbsolutePath().normalize();
         FileSystem fs = getFileSystem();
         FileSystemProvider provider = fs.provider();
         provider.checkAccess(absolute);

@@ -186,7 +186,7 @@ public abstract class VirtualFileSystem extends AbstractVirtualFileSystem {
 
     protected VirtualFile resolve(VirtualPath path) throws IOException {
         try {
-            return cache.get(path.toAbsolutePath());
+            return cache.get(path.toAbsolutePath().normalize());
         } catch (ExecutionException e) {
             if (e.getCause() instanceof IOException) {
                 throw (IOException) e.getCause();
