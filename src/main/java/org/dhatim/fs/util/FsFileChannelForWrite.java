@@ -65,6 +65,9 @@ public class FsFileChannelForWrite extends FileChannel {
 
     @Override
     public FileChannel position(long newPosition) throws IOException {
+        if (newPosition != size()) {
+            throw new UnsupportedOperationException("position");
+        }
         // no-op
         return this;
     }
