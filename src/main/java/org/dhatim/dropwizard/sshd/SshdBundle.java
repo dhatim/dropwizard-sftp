@@ -38,7 +38,7 @@ public abstract class SshdBundle<T extends Configuration> implements ConfiguredB
             public Command create() {
                 SftpSubsystem subsystem = new ThrottledSftpSubsystem(getExecutorService(),
                         getUnsupportedAttributePolicy(), getFileSystemAccessor(),
-                        getErrorStatusDataHandler(), sshConf.getCapacity().toBytes());
+                        getErrorStatusDataHandler(), sshConf.getCapacity());
                 GenericUtils.forEach(getRegisteredListeners(), subsystem::addSftpEventListener);
                 return subsystem;
             }

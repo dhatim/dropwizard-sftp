@@ -26,10 +26,10 @@ sshd:
   enable: true
   port: 2222
   bindHost: localhost
-  capacity: 1M
+  capacity: 256
 ```  
 
-The capacity (defaults to 1MB) caps the amount of memory used by in-flight buffers during a transfer session by throttling the producer and the consumer.
+The capacity (defaults to 256) caps the amount of in-flight buffers during a transfer session by throttling the producer and the consumer.
 
 ### Add the bundle to your Dropwizard application
 ```java

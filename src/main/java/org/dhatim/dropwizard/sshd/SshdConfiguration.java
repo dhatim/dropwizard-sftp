@@ -1,6 +1,5 @@
 package org.dhatim.dropwizard.sshd;
 
-import io.dropwizard.util.Size;
 import io.dropwizard.validation.PortRange;
 
 public class SshdConfiguration {
@@ -12,7 +11,7 @@ public class SshdConfiguration {
 
     private String bindHost = null;
 
-    private Size capacity = Size.megabytes(1);
+    private int capacity = 256;
 
     public void setPort(int port) {
         this.port = port;
@@ -22,11 +21,11 @@ public class SshdConfiguration {
         return port;
     }
 
-    public void setCapacity(Size capacity) {
+    public void setCapacity(int capacity) {
         this.capacity = capacity;
     }
 
-    public Size getCapacity() {
+    public int getCapacity() {
         return capacity;
     }
 
