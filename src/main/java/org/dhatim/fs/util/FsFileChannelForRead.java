@@ -7,45 +7,67 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
-import java.nio.channels.Channels;
-import java.nio.channels.FileChannel;
-import java.nio.channels.FileLock;
-import java.nio.channels.ReadableByteChannel;
-import java.nio.channels.WritableByteChannel;
+import java.nio.channels.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
+import static java.nio.file.StandardOpenOption.READ;
+import static java.nio.file.StandardOpenOption.WRITE;
 
 public class FsFileChannelForRead extends FileChannel {
 
     private static final Logger LOG = LoggerFactory.getLogger(FsFileChannelForRead.class);
-    private final FsByteChannel channel;
 
-    public FsFileChannelForRead() {
-        this(1024 * 1024);
-    }
+    private final Path temp;
+    private final FileChannel writeChannel;
+    private final FileChannel readChannel;
 
-    public FsFileChannelForRead(int capacity) {
-        channel = new FsByteChannel(capacity);
+    private final Lock lock = new ReentrantLock();
+    private final Condition canRead = lock.newCondition();
+
+    public FsFileChannelForRead() throws IOException {
+        temp = Files.createTempFile("sftp-read", ".tmp");
+        writeChannel = FileChannel.open(temp, WRITE);
+        readChannel = FileChannel.open(temp, READ);
     }
 
     public void transferTo(String threadName, ThrowingConsumer<OutputStream> writer) {
         new Thread(() -> {
-            try (OutputStream os = Channels.newOutputStream(channel)) {
+            try (OutputStream os = Channels.newOutputStream(writeChannel)) {
                 writer.accept(os);
             } catch (IOException e) {
                 LOG.error("cannot transfer to channel", e);
-            } finally {
-                channel.close();
             }
         }, threadName).start();
     }
 
     @Override
+    protected void implCloseChannel() throws IOException {
+        lock.lock();
+        try {
+            writeChannel.close();
+            readChannel.close();
+            canRead.signalAll();
+            Files.delete(temp.toAbsolutePath());
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    @Override
     public int read(ByteBuffer dst) throws IOException {
-        return channel.read(dst);
+        ensureRead();
+        return readChannel.read(dst);
     }
 
     @Override
     public long read(ByteBuffer[] dsts, int offset, int length) throws IOException {
-        throw new UnsupportedOperationException("read buffers");
+        ensureRead();
+        return readChannel.read(dsts, offset, length);
     }
 
     @Override
@@ -55,23 +77,23 @@ public class FsFileChannelForRead extends FileChannel {
 
     @Override
     public long write(ByteBuffer[] srcs, int offset, int length) throws IOException {
-        throw new UnsupportedOperationException("write buffers");
+        throw new UnsupportedOperationException("write");
     }
 
     @Override
     public long position() throws IOException {
-        return channel.getReadPos();
+        return readChannel.position();
     }
 
     @Override
     public FileChannel position(long newPosition) throws IOException {
-        // no-op
-        return this;
+        ensureRead(newPosition);
+        return readChannel.position(newPosition);
     }
 
     @Override
     public long size() throws IOException {
-        return channel.getReadPos();
+        return readChannel.size();
     }
 
     @Override
@@ -96,12 +118,13 @@ public class FsFileChannelForRead extends FileChannel {
 
     @Override
     public int read(ByteBuffer dst, long position) throws IOException {
-        throw new UnsupportedOperationException("read at position");
+        ensureRead(position);
+        return readChannel.read(dst, position);
     }
 
     @Override
     public int write(ByteBuffer src, long position) throws IOException {
-        throw new UnsupportedOperationException("write at position");
+        throw new UnsupportedOperationException("write");
     }
 
     @Override
@@ -119,8 +142,21 @@ public class FsFileChannelForRead extends FileChannel {
         throw new UnsupportedOperationException("tryLock");
     }
 
-    @Override
-    protected void implCloseChannel() throws IOException {
-        channel.close();
+    private void ensureRead(long position) throws IOException {
+        lock.lock();
+        try {
+            while (position >= readChannel.size() && writeChannel.isOpen()) {
+                canRead.await(100, TimeUnit.MILLISECONDS);
+            }
+        } catch (InterruptedException ex) {
+            Thread.currentThread().interrupt();
+            throw new IOException(ex);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    private void ensureRead() throws IOException {
+        ensureRead(readChannel.position());
     }
 }
