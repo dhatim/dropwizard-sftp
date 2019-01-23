@@ -7,7 +7,11 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
-import java.nio.channels.*;
+import java.nio.channels.Channels;
+import java.nio.channels.FileChannel;
+import java.nio.channels.FileLock;
+import java.nio.channels.ReadableByteChannel;
+import java.nio.channels.WritableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.concurrent.TimeUnit;
@@ -35,14 +39,29 @@ public class FsFileChannelForRead extends FileChannel {
         readChannel = FileChannel.open(temp, READ);
     }
 
-    public void transferTo(String threadName, ThrowingConsumer<OutputStream> writer) {
-        new Thread(() -> {
-            try (OutputStream os = Channels.newOutputStream(writeChannel)) {
+    public Thread transferTo(String threadName, ThrowingConsumer<OutputStream> writer) {
+        Thread t = new Thread(() -> {
+            try (OutputStream os = new DelegateOutputStream(Channels.newOutputStream(writeChannel)) {
+                @Override
+                protected void bytesWritten(int n) throws IOException {
+                    if (readChannel.position() == writeChannel.size() - n) {
+                        // reader may be blocked: signal it there are bytes to read
+                        lock.lock();
+                        try {
+                            canRead.signalAll();
+                        } finally {
+                            lock.unlock();
+                        }
+                    }
+                }
+            }) {
                 writer.accept(os);
             } catch (IOException e) {
                 LOG.error("cannot transfer to channel", e);
             }
-        }, threadName).start();
+        }, threadName);
+        t.start();
+        return t;
     }
 
     @Override
@@ -60,13 +79,13 @@ public class FsFileChannelForRead extends FileChannel {
 
     @Override
     public int read(ByteBuffer dst) throws IOException {
-        ensureRead();
+        ensureRead(dst.remaining());
         return readChannel.read(dst);
     }
 
     @Override
     public long read(ByteBuffer[] dsts, int offset, int length) throws IOException {
-        ensureRead();
+        ensureRead(length);
         return readChannel.read(dsts, offset, length);
     }
 
@@ -87,8 +106,9 @@ public class FsFileChannelForRead extends FileChannel {
 
     @Override
     public FileChannel position(long newPosition) throws IOException {
-        ensureRead(newPosition);
-        return readChannel.position(newPosition);
+        ensureRead(newPosition, 0);
+        readChannel.position(newPosition);
+        return this;
     }
 
     @Override
@@ -118,7 +138,7 @@ public class FsFileChannelForRead extends FileChannel {
 
     @Override
     public int read(ByteBuffer dst, long position) throws IOException {
-        ensureRead(position);
+        ensureRead(position, dst.remaining());
         return readChannel.read(dst, position);
     }
 
@@ -142,11 +162,11 @@ public class FsFileChannelForRead extends FileChannel {
         throw new UnsupportedOperationException("tryLock");
     }
 
-    private void ensureRead(long position) throws IOException {
+    private void ensureRead(long position, int n) throws IOException {
         lock.lock();
         try {
-            while (position >= readChannel.size() && writeChannel.isOpen()) {
-                canRead.await(100, TimeUnit.MILLISECONDS);
+            while (position + n >= readChannel.size() && writeChannel.isOpen()) {
+                canRead.await(1, TimeUnit.SECONDS);
             }
         } catch (InterruptedException ex) {
             Thread.currentThread().interrupt();
@@ -156,7 +176,7 @@ public class FsFileChannelForRead extends FileChannel {
         }
     }
 
-    private void ensureRead() throws IOException {
-        ensureRead(readChannel.position());
+    private void ensureRead(int n) throws IOException {
+        ensureRead(readChannel.position(), n);
     }
 }
