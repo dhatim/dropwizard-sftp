@@ -1,4 +1,4 @@
 language: java
-jdk: opendk13
+jdk: openjdk13
 install: true
 script: . .travis/script.sh
