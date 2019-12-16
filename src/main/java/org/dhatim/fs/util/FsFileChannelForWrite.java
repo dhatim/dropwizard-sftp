@@ -13,16 +13,22 @@ public class FsFileChannelForWrite extends FileChannel {
 
     private static final Logger LOG = LoggerFactory.getLogger(FsFileChannelForWrite.class);
     private final FsByteChannel channel;
+    private final Thread thread;
 
     public FsFileChannelForWrite() {
         this(1024 * 1024);
     }
 
     public FsFileChannelForWrite(int capacity) {
-        channel = new FsByteChannel(capacity);
+        this(new FsByteChannel(capacity), null);
     }
 
-    public Thread transferFrom(String threadName, ThrowingConsumer<InputStream> reader) {
+    private FsFileChannelForWrite(FsByteChannel channel, Thread thread) {
+        this.channel = channel;
+        this.thread = thread;
+    }
+
+    public FsFileChannelForWrite transferFrom(String threadName, ThrowingConsumer<InputStream> reader) {
         Thread thread = new Thread(() -> {
             try (InputStream is = Channels.newInputStream(channel)) {
                 reader.accept(is);
@@ -33,7 +39,7 @@ public class FsFileChannelForWrite extends FileChannel {
             }
         }, threadName);
         thread.start();
-        return thread;
+        return new FsFileChannelForWrite(channel, thread);
     }
 
     @Override
@@ -123,5 +129,13 @@ public class FsFileChannelForWrite extends FileChannel {
     @Override
     protected void implCloseChannel() throws IOException {
         channel.close();
+        if (thread != null) {
+            try {
+                thread.join();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new IOException(e);
+            }
+        }
     }
 }
