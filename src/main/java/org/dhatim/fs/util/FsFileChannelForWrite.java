@@ -7,12 +7,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
-import java.nio.channels.Channels;
-import java.nio.channels.FileChannel;
-import java.nio.channels.FileLock;
-import java.nio.channels.ReadableByteChannel;
-import java.nio.channels.WritableByteChannel;
-import java.util.concurrent.Semaphore;
+import java.nio.channels.*;
 
 public class FsFileChannelForWrite extends FileChannel {
 
@@ -27,24 +22,18 @@ public class FsFileChannelForWrite extends FileChannel {
         channel = new FsByteChannel(capacity);
     }
 
-    public void transferFrom(String threadName, ThrowingConsumer<InputStream> reader) throws InterruptedException {
-        Semaphore semaphore = new Semaphore(0);
-        new Thread(() -> {
-            boolean released = false;
+    public Thread transferFrom(String threadName, ThrowingConsumer<InputStream> reader) {
+        Thread thread = new Thread(() -> {
             try (InputStream is = Channels.newInputStream(channel)) {
-                semaphore.release();
-                released = true;
                 reader.accept(is);
             } catch (IOException e) {
                 LOG.error("cannot transfer from channel", e);
             } finally {
                 channel.close();
-                if (!released) {
-                    semaphore.release();
-                }
             }
-        }, threadName).start();
-        semaphore.acquire();
+        }, threadName);
+        thread.start();
+        return thread;
     }
 
     @Override
