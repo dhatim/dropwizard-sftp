@@ -12,6 +12,7 @@ import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
+import java.util.concurrent.Semaphore;
 
 public class FsFileChannelForWrite extends FileChannel {
 
@@ -26,16 +27,24 @@ public class FsFileChannelForWrite extends FileChannel {
         channel = new FsByteChannel(capacity);
     }
 
-    public void transferFrom(String threadName, ThrowingConsumer<InputStream> reader) {
+    public void transferFrom(String threadName, ThrowingConsumer<InputStream> reader) throws InterruptedException {
+        Semaphore semaphore = new Semaphore(0);
         new Thread(() -> {
+            boolean released = false;
             try (InputStream is = Channels.newInputStream(channel)) {
+                semaphore.release();
+                released = true;
                 reader.accept(is);
             } catch (IOException e) {
                 LOG.error("cannot transfer from channel", e);
             } finally {
                 channel.close();
+                if (!released) {
+                    semaphore.release();
+                }
             }
         }, threadName).start();
+        semaphore.acquire();
     }
 
     @Override
