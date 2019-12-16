@@ -7,27 +7,29 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
-import java.nio.channels.Channels;
-import java.nio.channels.FileChannel;
-import java.nio.channels.FileLock;
-import java.nio.channels.ReadableByteChannel;
-import java.nio.channels.WritableByteChannel;
+import java.nio.channels.*;
 
 public class FsFileChannelForWrite extends FileChannel {
 
     private static final Logger LOG = LoggerFactory.getLogger(FsFileChannelForWrite.class);
     private final FsByteChannel channel;
+    private final Thread thread;
 
     public FsFileChannelForWrite() {
         this(1024 * 1024);
     }
 
     public FsFileChannelForWrite(int capacity) {
-        channel = new FsByteChannel(capacity);
+        this(new FsByteChannel(capacity), null);
     }
 
-    public void transferFrom(String threadName, ThrowingConsumer<InputStream> reader) {
-        new Thread(() -> {
+    private FsFileChannelForWrite(FsByteChannel channel, Thread thread) {
+        this.channel = channel;
+        this.thread = thread;
+    }
+
+    public FsFileChannelForWrite transferFrom(String threadName, ThrowingConsumer<InputStream> reader) {
+        Thread thread = new Thread(() -> {
             try (InputStream is = Channels.newInputStream(channel)) {
                 reader.accept(is);
             } catch (IOException e) {
@@ -35,7 +37,9 @@ public class FsFileChannelForWrite extends FileChannel {
             } finally {
                 channel.close();
             }
-        }, threadName).start();
+        }, threadName);
+        thread.start();
+        return new FsFileChannelForWrite(channel, thread);
     }
 
     @Override
@@ -125,5 +129,13 @@ public class FsFileChannelForWrite extends FileChannel {
     @Override
     protected void implCloseChannel() throws IOException {
         channel.close();
+        if (thread != null) {
+            try {
+                thread.join();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new IOException(e);
+            }
+        }
     }
 }
