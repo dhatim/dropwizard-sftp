@@ -4,7 +4,7 @@
 [![Javadocs](https://www.javadoc.io/badge/org.dhatim/dropwizard-sftp.svg)](https://www.javadoc.io/doc/org.dhatim/dropwizard-sftp)
 
 SFTP Server (SSH File Transfer Protocol) based on [Apache MINA SSHD](https://mina.apache.org/) for [Dropwizard](https://www.dropwizard.io).
-**Please note version 2 requires Dropwizard 2 and JDK 13.**
+**Please note version 2 requires Dropwizard 2.**
 
 ## Usage
 
@@ -17,7 +17,7 @@ This project is available in the [Central Repository](http://search.maven.org/#s
 <dependency>
   <groupId>org.dhatim</groupId>
   <artifactId>dropwizard-sftp</artifactId>
-  <version>2.0.0-1</version>
+  <version>2.0.0-2</version>
 </dependency>
 ```
 
