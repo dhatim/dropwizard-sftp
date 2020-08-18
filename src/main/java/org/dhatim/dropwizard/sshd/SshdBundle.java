@@ -7,12 +7,14 @@ import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import org.apache.sshd.common.util.GenericUtils;
 import org.apache.sshd.server.SshServer;
+import org.apache.sshd.server.channel.ChannelSession;
 import org.apache.sshd.server.command.Command;
 import org.apache.sshd.server.subsystem.sftp.SftpSubsystem;
 import org.apache.sshd.server.subsystem.sftp.SftpSubsystemFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.Arrays;
 
 public abstract class SshdBundle<T extends Configuration> implements ConfiguredBundle<T> {
@@ -35,8 +37,8 @@ public abstract class SshdBundle<T extends Configuration> implements ConfiguredB
         server.setSubsystemFactories(Arrays.asList(new SftpSubsystemFactory() {
 
             @Override
-            public Command create() {
-                SftpSubsystem subsystem = new ThrottledSftpSubsystem(getExecutorService(),
+            public Command createSubsystem(ChannelSession channel) {
+                SftpSubsystem subsystem = new ThrottledSftpSubsystem(resolveExecutorService(),
                         getUnsupportedAttributePolicy(), getFileSystemAccessor(),
                         getErrorStatusDataHandler(), sshConf.getCapacity());
                 GenericUtils.forEach(getRegisteredListeners(), subsystem::addSftpEventListener);
