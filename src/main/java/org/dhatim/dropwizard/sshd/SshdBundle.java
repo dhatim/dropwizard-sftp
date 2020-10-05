@@ -14,7 +14,6 @@ import org.apache.sshd.server.subsystem.sftp.SftpSubsystemFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.Arrays;
 
 public abstract class SshdBundle<T extends Configuration> implements ConfiguredBundle<T> {
@@ -47,7 +46,8 @@ public abstract class SshdBundle<T extends Configuration> implements ConfiguredB
         }));
         server.setPort(sshConf.port);
         server.setHost(sshConf.bindHost);
-        server.setCipherFactoriesNameList(sshConf.ciphers);
+        server.setCipherFactoriesNameList(sshConf.cipherAlgorithms);
+        server.setMacFactoriesNameList(sshConf.macAlgorithms);
         configure(configuration, environment, server);
 
         environment.lifecycle().manage(new Managed() {
