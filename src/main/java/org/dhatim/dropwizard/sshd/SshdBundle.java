@@ -28,7 +28,7 @@ public abstract class SshdBundle<T extends Configuration> implements ConfiguredB
     @Override
     public void run(T configuration, Environment environment) throws Exception {
         SshdConfiguration sshConf = getSshdConfiguration(configuration);
-        if (!sshConf.isEnable()) {
+        if (!sshConf.enable) {
             LOG.info("SSHD server disabled");
             return;
         }
@@ -40,13 +40,14 @@ public abstract class SshdBundle<T extends Configuration> implements ConfiguredB
             public Command createSubsystem(ChannelSession channel) {
                 SftpSubsystem subsystem = new ThrottledSftpSubsystem(resolveExecutorService(),
                         getUnsupportedAttributePolicy(), getFileSystemAccessor(),
-                        getErrorStatusDataHandler(), sshConf.getCapacity());
+                        getErrorStatusDataHandler(), sshConf.capacity);
                 GenericUtils.forEach(getRegisteredListeners(), subsystem::addSftpEventListener);
                 return subsystem;
             }
         }));
-        server.setPort(sshConf.getPort());
-        server.setHost(sshConf.getBindHost());
+        server.setPort(sshConf.port);
+        server.setHost(sshConf.bindHost);
+        server.setCipherFactoriesNameList(sshConf.ciphers);
         configure(configuration, environment, server);
 
         environment.lifecycle().manage(new Managed() {
