@@ -1,5 +1,5 @@
 # dropwizard-sftp
-[![Build Status](https://travis-ci.org/dhatim/dropwizard-sftp.png?branch=master)](https://travis-ci.org/dhatim/dropwizard-sftp)
+[![Build Status](https://github.com/dhatim/dropwizard-sftp/workflows/build/badge.svg)](https://github.com/dhatim/dropwizard-sftp/actions)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/org.dhatim/dropwizard-sftp/badge.svg)](https://maven-badges.herokuapp.com/maven-central/org.dhatim/dropwizard-sftp)
 [![Javadocs](https://www.javadoc.io/badge/org.dhatim/dropwizard-sftp.svg)](https://www.javadoc.io/doc/org.dhatim/dropwizard-sftp)
 
@@ -17,7 +17,7 @@ This project is available in the [Central Repository](http://search.maven.org/#s
 <dependency>
   <groupId>org.dhatim</groupId>
   <artifactId>dropwizard-sftp</artifactId>
-  <version>2.0.0-3</version>
+  <version>2.0.20</version>
 </dependency>
 ```
 

@@ -9,8 +9,8 @@ import org.apache.sshd.common.util.GenericUtils;
 import org.apache.sshd.server.SshServer;
 import org.apache.sshd.server.channel.ChannelSession;
 import org.apache.sshd.server.command.Command;
-import org.apache.sshd.server.subsystem.sftp.SftpSubsystem;
-import org.apache.sshd.server.subsystem.sftp.SftpSubsystemFactory;
+import org.apache.sshd.sftp.server.SftpSubsystem;
+import org.apache.sshd.sftp.server.SftpSubsystemFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

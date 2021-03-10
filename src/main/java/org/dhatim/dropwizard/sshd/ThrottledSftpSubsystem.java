@@ -3,10 +3,10 @@ package org.dhatim.dropwizard.sshd;
 import org.apache.sshd.common.util.buffer.Buffer;
 import org.apache.sshd.common.util.threads.CloseableExecutorService;
 import org.apache.sshd.server.channel.ChannelSession;
-import org.apache.sshd.server.subsystem.sftp.SftpErrorStatusDataHandler;
-import org.apache.sshd.server.subsystem.sftp.SftpFileSystemAccessor;
-import org.apache.sshd.server.subsystem.sftp.SftpSubsystem;
-import org.apache.sshd.server.subsystem.sftp.UnsupportedAttributePolicy;
+import org.apache.sshd.sftp.server.SftpErrorStatusDataHandler;
+import org.apache.sshd.sftp.server.SftpFileSystemAccessor;
+import org.apache.sshd.sftp.server.SftpSubsystem;
+import org.apache.sshd.sftp.server.UnsupportedAttributePolicy;
 
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
