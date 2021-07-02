@@ -2,11 +2,9 @@ package org.dhatim.dropwizard.sshd;
 
 import org.apache.sshd.common.util.buffer.Buffer;
 import org.apache.sshd.common.util.threads.CloseableExecutorService;
+import org.apache.sshd.server.channel.ChannelDataReceiver;
 import org.apache.sshd.server.channel.ChannelSession;
-import org.apache.sshd.sftp.server.SftpErrorStatusDataHandler;
-import org.apache.sshd.sftp.server.SftpFileSystemAccessor;
-import org.apache.sshd.sftp.server.SftpSubsystem;
-import org.apache.sshd.sftp.server.UnsupportedAttributePolicy;
+import org.apache.sshd.sftp.server.*;
 
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
@@ -20,8 +18,41 @@ public class ThrottledSftpSubsystem extends SftpSubsystem {
     private final Lock lock = new ReentrantLock();
     private final Condition hasCapacity = lock.newCondition();
 
-    public ThrottledSftpSubsystem(CloseableExecutorService executorService, UnsupportedAttributePolicy policy, SftpFileSystemAccessor accessor, SftpErrorStatusDataHandler errorStatusDataHandler, int capacity) {
-        super(executorService, policy, accessor, errorStatusDataHandler);
+    public ThrottledSftpSubsystem(CloseableExecutorService executorService,
+                                  UnsupportedAttributePolicy policy,
+                                  SftpFileSystemAccessor accessor,
+                                  SftpErrorStatusDataHandler errorStatusDataHandler,
+                                  ChannelDataReceiver errorChannelDataReceiver,
+                                  ChannelSession channelSession,
+                                  int capacity) {
+        super(channelSession,
+                new SftpSubsystemConfigurator() {
+
+                    @Override
+                    public UnsupportedAttributePolicy getUnsupportedAttributePolicy() {
+                        return policy;
+                    }
+
+                    @Override
+                    public SftpFileSystemAccessor getFileSystemAccessor() {
+                        return accessor;
+                    }
+
+                    @Override
+                    public SftpErrorStatusDataHandler getErrorStatusDataHandler() {
+                        return errorStatusDataHandler;
+                    }
+
+                    @Override
+                    public ChannelDataReceiver getErrorChannelDataReceiver() {
+                        return errorChannelDataReceiver;
+                    }
+
+                    @Override
+                    public CloseableExecutorService getExecutorService() {
+                        return executorService;
+                    }
+                });
         this.capacity = capacity;
     }
 

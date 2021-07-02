@@ -13,7 +13,7 @@ public class SshdConfiguration {
 
     public int capacity = 256;
 
-    public String cipherAlgorithms = "aes128-ctr,aes192-ctr,aes256-ctr,aes128-cbc,blowfish-cbc,aes192-cbc,aes256-cbc";
+    public String cipherAlgorithms = "";
 
-    public String macAlgorithms = "hmac-sha2-256,hmac-sha2-512";
+    public String macAlgorithms = "";
 }

@@ -39,15 +39,19 @@ public abstract class SshdBundle<T extends Configuration> implements ConfiguredB
             public Command createSubsystem(ChannelSession channel) {
                 SftpSubsystem subsystem = new ThrottledSftpSubsystem(resolveExecutorService(),
                         getUnsupportedAttributePolicy(), getFileSystemAccessor(),
-                        getErrorStatusDataHandler(), sshConf.capacity);
+                        getErrorStatusDataHandler(), getErrorChannelDataReceiver(), channel, sshConf.capacity);
                 GenericUtils.forEach(getRegisteredListeners(), subsystem::addSftpEventListener);
                 return subsystem;
             }
         }));
         server.setPort(sshConf.port);
         server.setHost(sshConf.bindHost);
-        server.setCipherFactoriesNameList(sshConf.cipherAlgorithms);
-        server.setMacFactoriesNameList(sshConf.macAlgorithms);
+        if (sshConf.cipherAlgorithms != null && !sshConf.cipherAlgorithms.trim().isEmpty()) {
+            server.setCipherFactoriesNameList(sshConf.cipherAlgorithms);
+        }
+        if (sshConf.macAlgorithms != null && !sshConf.macAlgorithms.trim().isEmpty()) {
+            server.setMacFactoriesNameList(sshConf.macAlgorithms);
+        }
         configure(configuration, environment, server);
 
         environment.lifecycle().manage(new Managed() {
