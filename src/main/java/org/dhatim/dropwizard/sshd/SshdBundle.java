@@ -53,7 +53,6 @@ public abstract class SshdBundle<T extends Configuration> implements ConfiguredB
         server.setHost(sshConf.bindHost);
         if (sshConf.encAlgorithms != null && !sshConf.encAlgorithms.trim().isEmpty()) {
             server.setCipherFactoriesNameList(sshConf.encAlgorithms);
-            server.getCipherFactoriesNameList()
         }
         if (sshConf.macAlgorithms != null && !sshConf.macAlgorithms.trim().isEmpty()) {
             server.setMacFactoriesNameList(sshConf.macAlgorithms);
