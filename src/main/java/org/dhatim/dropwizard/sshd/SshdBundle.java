@@ -9,6 +9,8 @@ import org.apache.sshd.client.ClientBuilder;
 import org.apache.sshd.common.NamedFactory;
 import org.apache.sshd.common.kex.BuiltinDHFactories;
 import org.apache.sshd.common.kex.KeyExchangeFactory;
+import org.apache.sshd.common.signature.BuiltinSignatures;
+import org.apache.sshd.common.signature.Signature;
 import org.apache.sshd.common.util.GenericUtils;
 import org.apache.sshd.server.SshServer;
 import org.apache.sshd.server.channel.ChannelSession;
@@ -20,6 +22,8 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;
+
+import static java.util.stream.Collectors.toList;
 
 public abstract class SshdBundle<T extends Configuration> implements ConfiguredBundle<T> {
 
@@ -51,6 +55,11 @@ public abstract class SshdBundle<T extends Configuration> implements ConfiguredB
         }));
         server.setPort(sshConf.port);
         server.setHost(sshConf.bindHost);
+        if (sshConf.sigAlgorithms != null && !sshConf.sigAlgorithms.trim().isEmpty()) {
+            BuiltinSignatures.ParseResult result = BuiltinSignatures.parseSignatureList(sshConf.sigAlgorithms);
+            List<NamedFactory<Signature>> list = result.getParsedFactories().stream().collect(toList());
+            server.setSignatureFactories(list);
+        }
         if (sshConf.encAlgorithms != null && !sshConf.encAlgorithms.trim().isEmpty()) {
             server.setCipherFactoriesNameList(sshConf.encAlgorithms);
         }

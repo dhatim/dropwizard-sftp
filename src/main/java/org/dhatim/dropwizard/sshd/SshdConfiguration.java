@@ -13,6 +13,8 @@ public class SshdConfiguration {
 
     public int capacity = 256;
 
+    public String sigAlgorithms = "";
+
     public String encAlgorithms = "";
 
     public String macAlgorithms = "";
