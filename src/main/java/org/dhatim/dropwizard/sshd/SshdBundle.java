@@ -5,6 +5,10 @@ import io.dropwizard.ConfiguredBundle;
 import io.dropwizard.lifecycle.Managed;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
+import org.apache.sshd.client.ClientBuilder;
+import org.apache.sshd.common.NamedFactory;
+import org.apache.sshd.common.kex.BuiltinDHFactories;
+import org.apache.sshd.common.kex.KeyExchangeFactory;
 import org.apache.sshd.common.util.GenericUtils;
 import org.apache.sshd.server.SshServer;
 import org.apache.sshd.server.channel.ChannelSession;
@@ -15,6 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
+import java.util.List;
 
 public abstract class SshdBundle<T extends Configuration> implements ConfiguredBundle<T> {
 
@@ -46,11 +51,17 @@ public abstract class SshdBundle<T extends Configuration> implements ConfiguredB
         }));
         server.setPort(sshConf.port);
         server.setHost(sshConf.bindHost);
-        if (sshConf.cipherAlgorithms != null && !sshConf.cipherAlgorithms.trim().isEmpty()) {
-            server.setCipherFactoriesNameList(sshConf.cipherAlgorithms);
+        if (sshConf.encAlgorithms != null && !sshConf.encAlgorithms.trim().isEmpty()) {
+            server.setCipherFactoriesNameList(sshConf.encAlgorithms);
+            server.getCipherFactoriesNameList()
         }
         if (sshConf.macAlgorithms != null && !sshConf.macAlgorithms.trim().isEmpty()) {
             server.setMacFactoriesNameList(sshConf.macAlgorithms);
+        }
+        if (sshConf.kexAlgorithms != null && !sshConf.kexAlgorithms.trim().isEmpty()) {
+            BuiltinDHFactories.ParseResult result = BuiltinDHFactories.parseDHFactoriesList(sshConf.kexAlgorithms);
+            List<KeyExchangeFactory> factories = NamedFactory.setUpTransformedFactories(false, result.getParsedFactories(), ClientBuilder.DH2KEX);
+            server.setKeyExchangeFactories(factories);
         }
         configure(configuration, environment, server);
 

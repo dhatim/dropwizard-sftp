@@ -13,7 +13,9 @@ public class SshdConfiguration {
 
     public int capacity = 256;
 
-    public String cipherAlgorithms = "";
+    public String encAlgorithms = "";
 
     public String macAlgorithms = "";
+
+    public String kexAlgorithms = "";
 }
