@@ -7,6 +7,7 @@ import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import org.apache.sshd.client.ClientBuilder;
 import org.apache.sshd.common.NamedFactory;
+import org.apache.sshd.common.NamedResource;
 import org.apache.sshd.common.kex.BuiltinDHFactories;
 import org.apache.sshd.common.kex.KeyExchangeFactory;
 import org.apache.sshd.common.signature.BuiltinSignatures;
@@ -23,6 +24,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Arrays;
 import java.util.List;
 
+import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 
 public abstract class SshdBundle<T extends Configuration> implements ConfiguredBundle<T> {
@@ -59,17 +61,21 @@ public abstract class SshdBundle<T extends Configuration> implements ConfiguredB
             BuiltinSignatures.ParseResult result = BuiltinSignatures.parseSignatureList(sshConf.sigAlgorithms);
             List<NamedFactory<Signature>> list = result.getParsedFactories().stream().collect(toList());
             server.setSignatureFactories(list);
+            LOG.info("SSHD: configure signature algorithms to {}", list.stream().map(NamedResource::getName).collect(joining(", ")));
         }
         if (sshConf.encAlgorithms != null && !sshConf.encAlgorithms.trim().isEmpty()) {
             server.setCipherFactoriesNameList(sshConf.encAlgorithms);
+            LOG.info("SSHD: configure cipher algorithms to {}", server.getCipherFactories().stream().map(NamedResource::getName).collect(joining(", ")));
         }
         if (sshConf.macAlgorithms != null && !sshConf.macAlgorithms.trim().isEmpty()) {
             server.setMacFactoriesNameList(sshConf.macAlgorithms);
+            LOG.info("SSHD: configure message digest algorithms to {}", server.getMacFactories().stream().map(NamedResource::getName).collect(joining(", ")));
         }
         if (sshConf.kexAlgorithms != null && !sshConf.kexAlgorithms.trim().isEmpty()) {
             BuiltinDHFactories.ParseResult result = BuiltinDHFactories.parseDHFactoriesList(sshConf.kexAlgorithms);
             List<KeyExchangeFactory> factories = NamedFactory.setUpTransformedFactories(false, result.getParsedFactories(), ClientBuilder.DH2KEX);
             server.setKeyExchangeFactories(factories);
+            LOG.info("SSHD: configure key exchange algorithms to {}", server.getKeyExchangeFactories().stream().map(NamedResource::getName).collect(joining(", ")));
         }
         configure(configuration, environment, server);
 
