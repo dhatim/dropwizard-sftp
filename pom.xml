@@ -53,6 +53,7 @@
         <java.source>1.8</java.source>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <dropwizard.version>2.0.28</dropwizard.version>
         <apache.sshd.version>2.8.0</apache.sshd.version>
     </properties>
