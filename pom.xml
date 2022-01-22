@@ -2,11 +2,7 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <parent>
-        <groupId>org.dhatim</groupId>
-        <artifactId>root-oss</artifactId>
-        <version>22.4.0</version>
-    </parent>
+
     <groupId>org.dhatim</groupId>
     <artifactId>dropwizard-sftp</artifactId>
     <version>0-SNAPSHOT</version>
@@ -37,7 +33,7 @@
     <scm>
         <connection>scm:git:git@github.com:dhatim/dropwizard-sftp.git</connection>
         <developerConnection>scm:git:git@github.com:dhatim/dropwizard-sftp.git</developerConnection>
-        <url>http://github.com/dhatim/dropwizard-sftp.git</url>
+        <url>https://github.com/dhatim/dropwizard-sftp.git</url>
         <tag>HEAD</tag>
     </scm>
 
@@ -54,7 +50,11 @@
     </distributionManagement>
 
     <properties>
-        <enforcer.fail>false</enforcer.fail>
+        <java.source>1.8</java.source>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+        <dropwizard.version>2.0.28</dropwizard.version>
+        <apache.sshd.version>2.8.0</apache.sshd.version>
     </properties>
 
     <repositories>
@@ -78,6 +78,7 @@
                 <plugins>
                     <plugin>
                         <artifactId>maven-gpg-plugin</artifactId>
+                        <version>3.0.1</version>
                         <executions>
                             <execution>
                                 <id>sign-artifacts</id>
@@ -90,6 +91,7 @@
                     </plugin>
                     <plugin>
                         <artifactId>maven-javadoc-plugin</artifactId>
+                        <version>3.3.0</version>
                         <configuration>
                             <quiet>true</quiet>
                         </configuration>
@@ -104,6 +106,7 @@
                     </plugin>
                     <plugin>
                         <artifactId>maven-source-plugin</artifactId>
+                        <version>3.2.1</version>
                         <executions>
                             <execution>
                                 <id>attach-sources</id>
@@ -116,6 +119,7 @@
                     <plugin>
                         <groupId>org.sonatype.plugins</groupId>
                         <artifactId>nexus-staging-maven-plugin</artifactId>
+                        <version>1.6.8</version>
                         <extensions>true</extensions>
                         <configuration>
                             <serverId>ossrh</serverId>
@@ -133,20 +137,22 @@
         <dependency>
             <groupId>org.apache.sshd</groupId>
             <artifactId>sshd-core</artifactId>
-            <version>2.8.0</version>
+            <version>${apache.sshd.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.sshd</groupId>
             <artifactId>sshd-contrib</artifactId>
-            <version>2.8.0</version>
+            <version>${apache.sshd.version}</version>
         </dependency>
         <dependency>
             <groupId>io.dropwizard</groupId>
             <artifactId>dropwizard-core</artifactId>
+            <version>${dropwizard.version}</version>
         </dependency>
         <dependency>
             <groupId>io.dropwizard</groupId>
             <artifactId>dropwizard-lifecycle</artifactId>
+            <version>${dropwizard.version}</version>
         </dependency>
     </dependencies>
 </project>
