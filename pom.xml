@@ -54,7 +54,7 @@
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>11</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <apache.sshd.version>2.13.0</apache.sshd.version>
+        <apache.sshd.version>2.13.1</apache.sshd.version>
     </properties>
 
     <repositories>
